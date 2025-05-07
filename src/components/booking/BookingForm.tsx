@@ -31,10 +31,10 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { createBooking } from "@/lib/api";
 
-// Time slots from 9AM to 5PM in 24-hour format
-const TIME_SLOTS = Array.from({ length: 17 }, (_, i) => {
-  const hour = Math.floor((i + 18) / 2);
-  const minute = (i + 18) % 2 === 0 ? "00" : "30";
+// Time slots from 0:00 to 23:30 in 24-hour format (full day coverage)
+const TIME_SLOTS = Array.from({ length: 48 }, (_, i) => {
+  const hour = Math.floor(i / 2);
+  const minute = i % 2 === 0 ? "00" : "30";
   return `${hour.toString().padStart(2, "0")}:${minute}`;
 });
 
@@ -75,6 +75,7 @@ export function BookingForm() {
       attendees: "",
       date: today,
       duration: 60,
+      startTime: format(new Date(), "HH:00"), // Default to current hour
     },
   });
 
