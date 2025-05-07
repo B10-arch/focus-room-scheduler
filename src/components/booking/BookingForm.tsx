@@ -47,12 +47,7 @@ const bookingSchema = z.object({
   description: z.string().optional(),
   date: z.date({
     required_error: "Please select a date",
-  }).refine(
-    (date) => isAfter(date, startOfToday()),
-    {
-      message: "Date must be in the future",
-    }
-  ),
+  }),
   startTime: z.string({
     required_error: "Please select a start time",
   }),
@@ -68,6 +63,9 @@ export function BookingForm() {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Default to today's date
+  const today = new Date();
 
   const form = useForm<BookingValues>({
     resolver: zodResolver(bookingSchema),
@@ -75,6 +73,7 @@ export function BookingForm() {
       title: "",
       description: "",
       attendees: "",
+      date: today, // Auto-populate with today's date
       duration: 60,
     },
   });
@@ -107,7 +106,8 @@ export function BookingForm() {
         startTime: bookingDate.toISOString(),
         endTime: endDate.toISOString(),
         attendees: data.attendees ? data.attendees.split(",").map(email => email.trim()) : [],
-        createdBy: currentUser.email
+        createdBy: currentUser.email,
+        durationMinutes: data.duration
       });
       
       toast.success("Booking confirmed!");
@@ -210,7 +210,7 @@ export function BookingForm() {
                             mode="single"
                             selected={field.value}
                             onSelect={field.onChange}
-                            disabled={(date) => date < new Date()}
+                            disabled={(date) => date < startOfToday()} // Allow same-day booking
                             initialFocus
                             className={cn("p-3 pointer-events-auto")}
                           />

@@ -6,8 +6,8 @@ export default function Index() {
   const navigate = useNavigate();
   
   useEffect(() => {
-    // Redirect to home page
-    navigate("/", { replace: true });
+    // Redirect to book page
+    navigate("/book", { replace: true });
   }, [navigate]);
   
   return null;

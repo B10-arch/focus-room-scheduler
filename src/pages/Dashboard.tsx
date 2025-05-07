@@ -12,6 +12,63 @@ import { useAuth } from "@/contexts/AuthContext";
 import { getBookings, getUserBookings, cancelBooking } from "@/lib/api";
 import { BookingList } from "@/components/booking/BookingList";
 import { toast } from "sonner";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+// Component for showing booking statistics
+function BookingStats({ bookings }: { bookings: Booking[] }) {
+  // Calculate total hours booked
+  const totalMinutes = bookings.reduce((total, booking) => {
+    const startDate = new Date(booking.startTime);
+    const endDate = new Date(booking.endTime);
+    const durationMs = endDate.getTime() - startDate.getTime();
+    const durationMinutes = Math.round(durationMs / (1000 * 60));
+    return total + durationMinutes;
+  }, 0);
+  
+  const totalHours = Math.floor(totalMinutes / 60);
+  const remainingMinutes = totalMinutes % 60;
+  
+  // Get number of unique days booked
+  const uniqueDays = new Set(
+    bookings.map(booking => {
+      const date = new Date(booking.startTime);
+      return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+    })
+  ).size;
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-medium">Total Bookings</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{bookings.length}</div>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-medium">Total Hours Booked</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">
+            {totalHours} hr {remainingMinutes > 0 ? `${remainingMinutes} min` : ""}
+          </div>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-medium">Days Used</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{uniqueDays}</div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
 
 export default function Dashboard() {
   const { currentUser } = useAuth();
@@ -90,6 +147,9 @@ export default function Dashboard() {
               </a>
             </Button>
           </div>
+          
+          {/* Display booking statistics */}
+          <BookingStats bookings={bookings} />
           
           <Tabs defaultValue="upcoming" className="w-full">
             <TabsList className="mb-8">

@@ -9,6 +9,7 @@ export interface Booking {
   attendees: string[];
   createdBy: string;
   createdAt: string;
+  durationMinutes?: number; // Added for tracking duration
 }
 
 export interface CreateBookingParams {
@@ -19,4 +20,5 @@ export interface CreateBookingParams {
   endTime: string;
   attendees?: string[];
   createdBy: string;
+  durationMinutes?: number; // Added for tracking duration
 }

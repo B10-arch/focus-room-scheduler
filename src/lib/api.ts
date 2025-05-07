@@ -14,6 +14,7 @@ let BOOKINGS: Booking[] = [
     attendees: ["user@example.com", "team@example.com"],
     createdBy: "admin@example.com",
     createdAt: new Date().toISOString(),
+    durationMinutes: 60
   },
   {
     id: "2",
@@ -25,6 +26,7 @@ let BOOKINGS: Booking[] = [
     attendees: ["client@example.com", "team@example.com"],
     createdBy: "user@example.com",
     createdAt: new Date().toISOString(),
+    durationMinutes: 90
   },
 ];
 
@@ -65,11 +67,19 @@ export const createBooking = async (params: CreateBookingParams): Promise<Bookin
     throw new Error("There is a scheduling conflict with an existing booking");
   }
 
+  // Calculate duration if not provided
+  const durationMinutes = params.durationMinutes || (() => {
+    const start = new Date(params.startTime);
+    const end = new Date(params.endTime);
+    return Math.round((end.getTime() - start.getTime()) / (1000 * 60));
+  })();
+
   const newBooking: Booking = {
     id: `${BOOKINGS.length + 1}`,
     ...params,
     attendees: params.attendees || [],
     createdAt: new Date().toISOString(),
+    durationMinutes
   };
 
   BOOKINGS.push(newBooking);

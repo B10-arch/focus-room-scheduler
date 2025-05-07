@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -35,8 +34,8 @@ export function Navbar() {
       .toUpperCase();
   };
 
+  // Simplified navigation - only Book Room and Dashboard
   const navItems = [
-    { name: "Home", href: "/" },
     { name: "Book Room", href: "/book" },
     { name: "Dashboard", href: "/dashboard" },
   ];
@@ -91,12 +90,6 @@ export function Navbar() {
                     <Link to="/dashboard" className="flex items-center">
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       <span>My Bookings</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/profile" className="flex items-center">
-                      <User className="mr-2 h-4 w-4" />
-                      <span>Profile</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />

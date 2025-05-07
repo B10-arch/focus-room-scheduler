@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Booking } from "@/types/booking";
 import { useAuth } from "@/contexts/AuthContext";
+import { cn } from "@/lib/utils";
 
 interface BookingCardProps {
   booking: Booking;
@@ -143,5 +144,3 @@ export function BookingList({ bookings, onCancelBooking }: {
     </div>
   );
 }
-
-import { cn } from "@/lib/utils";
