@@ -1,42 +1,23 @@
+
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import {
   CalendarIcon,
   Clock,
-  LogOut,
   Menu,
-  User,
   X,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { useAuth } from "@/contexts/AuthContext";
 
 export function Navbar() {
-  const { currentUser, logout } = useAuth();
   const [open, setOpen] = useState(false);
-
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase();
-  };
 
   // Simplified navigation - only Book Room and Dashboard
   const navItems = [
-    { name: "Book Room", href: "/book" },
+    { name: "Book Room", href: "/" },
     { name: "Dashboard", href: "/dashboard" },
   ];
 
@@ -64,56 +45,6 @@ export function Navbar() {
         </nav>
 
         <div className="flex flex-1 items-center justify-end space-x-4">
-          {currentUser ? (
-            <div className="flex items-center">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                    <Avatar className="h-8 w-8">
-                      <AvatarFallback className="bg-primary text-primary-foreground">
-                        {getInitials(currentUser.name)}
-                      </AvatarFallback>
-                    </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end" forceMount>
-                  <div className="flex items-center justify-start gap-2 p-2">
-                    <div className="flex flex-col space-y-1 leading-none">
-                      <p className="font-medium">{currentUser.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {currentUser.email}
-                      </p>
-                    </div>
-                  </div>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link to="/dashboard" className="flex items-center">
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      <span>My Bookings</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem 
-                    className="cursor-pointer"
-                    onClick={() => logout()}
-                  >
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>Sign Out</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          ) : (
-            <div className="hidden md:flex space-x-2">
-              <Button variant="ghost" asChild>
-                <Link to="/login">Sign In</Link>
-              </Button>
-              <Button asChild>
-                <Link to="/register">Register</Link>
-              </Button>
-            </div>
-          )}
-
           {/* Mobile menu */}
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
@@ -157,53 +88,6 @@ export function Navbar() {
                     </div>
                   ))}
                 </div>
-
-                {currentUser ? (
-                  <div className="mt-auto space-y-2">
-                    <div className="flex items-center gap-2 mb-4">
-                      <Avatar className="h-8 w-8">
-                        <AvatarFallback className="bg-primary text-primary-foreground">
-                          {getInitials(currentUser.name)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="text-sm font-medium">{currentUser.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {currentUser.email}
-                        </p>
-                      </div>
-                    </div>
-                    <Button 
-                      variant="outline" 
-                      className="w-full"
-                      onClick={() => {
-                        logout();
-                        setOpen(false);
-                      }}
-                    >
-                      <LogOut className="h-4 w-4 mr-2" />
-                      Sign Out
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="mt-auto space-y-2">
-                    <Button 
-                      variant="ghost"
-                      className="w-full" 
-                      asChild
-                      onClick={() => setOpen(false)}
-                    >
-                      <Link to="/login">Sign In</Link>
-                    </Button>
-                    <Button 
-                      className="w-full" 
-                      asChild
-                      onClick={() => setOpen(false)}
-                    >
-                      <Link to="/register">Register</Link>
-                    </Button>
-                  </div>
-                )}
               </div>
             </SheetContent>
           </Sheet>

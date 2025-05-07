@@ -4,10 +4,9 @@ import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { format, addMinutes, isAfter, startOfToday } from "date-fns";
+import { format, addMinutes, startOfToday } from "date-fns";
 import { CalendarIcon, Clock } from "lucide-react";
 
-import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -32,7 +31,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { createBooking } from "@/lib/api";
 
-// Time slots from 9AM to 5PM
+// Time slots from 9AM to 5PM in 24-hour format
 const TIME_SLOTS = Array.from({ length: 17 }, (_, i) => {
   const hour = Math.floor((i + 18) / 2);
   const minute = (i + 18) % 2 === 0 ? "00" : "30";
@@ -45,6 +44,7 @@ const DURATION_OPTIONS = [30, 60, 90, 120, 180, 240];
 const bookingSchema = z.object({
   title: z.string().min(3, { message: "Title must be at least 3 characters long" }),
   description: z.string().optional(),
+  bookedBy: z.string().min(2, { message: "Please provide your name" }),
   date: z.date({
     required_error: "Please select a date",
   }),
@@ -60,7 +60,6 @@ const bookingSchema = z.object({
 type BookingValues = z.infer<typeof bookingSchema>;
 
 export function BookingForm() {
-  const { currentUser } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   
@@ -72,19 +71,14 @@ export function BookingForm() {
     defaultValues: {
       title: "",
       description: "",
+      bookedBy: "",
       attendees: "",
-      date: today, // Auto-populate with today's date
+      date: today,
       duration: 60,
     },
   });
 
   const onSubmit = async (data: BookingValues) => {
-    if (!currentUser) {
-      toast.error("You must be logged in to book a room");
-      navigate("/login");
-      return;
-    }
-
     setIsLoading(true);
 
     // Parse time components
@@ -98,15 +92,15 @@ export function BookingForm() {
     const endDate = addMinutes(bookingDate, data.duration);
     
     try {
-      // In a real app, this would save to your database
+      // Create booking with the user's name instead of authentication
       const booking = await createBooking({
-        userId: currentUser.id,
+        userId: "guest", // Use a placeholder userId for non-authenticated users
         title: data.title,
         description: data.description || "",
         startTime: bookingDate.toISOString(),
         endTime: endDate.toISOString(),
         attendees: data.attendees ? data.attendees.split(",").map(email => email.trim()) : [],
-        createdBy: currentUser.email,
+        createdBy: data.bookedBy, // Use the provided name instead of email
         durationMinutes: data.duration
       });
       
@@ -141,6 +135,20 @@ export function BookingForm() {
                       <FormLabel>Meeting Title</FormLabel>
                       <FormControl>
                         <Input placeholder="Weekly Team Standup" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="bookedBy"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Your Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="John Doe" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -226,7 +234,7 @@ export function BookingForm() {
                   name="startTime"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Start Time</FormLabel>
+                      <FormLabel>Start Time (24-hour)</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>

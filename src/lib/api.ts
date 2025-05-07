@@ -6,25 +6,25 @@ import { toast } from "sonner";
 let BOOKINGS: Booking[] = [
   {
     id: "1",
-    userId: "1",
+    userId: "guest",
     title: "Team Meeting",
     description: "Weekly team sync to discuss project progress",
     startTime: new Date(new Date().setHours(10, 0, 0, 0)).toISOString(),
     endTime: new Date(new Date().setHours(11, 0, 0, 0)).toISOString(),
     attendees: ["user@example.com", "team@example.com"],
-    createdBy: "admin@example.com",
+    createdBy: "John Smith",
     createdAt: new Date().toISOString(),
     durationMinutes: 60
   },
   {
     id: "2",
-    userId: "2",
+    userId: "guest",
     title: "Client Presentation",
     description: "Present new design concepts to the client",
     startTime: new Date(new Date().setHours(14, 0, 0, 0)).toISOString(),
     endTime: new Date(new Date().setHours(15, 30, 0, 0)).toISOString(),
     attendees: ["client@example.com", "team@example.com"],
-    createdBy: "user@example.com",
+    createdBy: "Maria Rodriguez",
     createdAt: new Date().toISOString(),
     durationMinutes: 90
   },

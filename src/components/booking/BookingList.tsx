@@ -14,7 +14,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Booking } from "@/types/booking";
-import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 
 interface BookingCardProps {
@@ -23,10 +22,6 @@ interface BookingCardProps {
 }
 
 export function BookingCard({ booking, onCancelBooking }: BookingCardProps) {
-  const { currentUser } = useAuth();
-  const isOwner = currentUser?.id === booking.userId;
-  const isAdmin = currentUser?.isAdmin;
-  
   const formatDuration = (start: string, end: string) => {
     const startDate = new Date(start);
     const endDate = new Date(end);
@@ -85,7 +80,7 @@ export function BookingCard({ booking, onCancelBooking }: BookingCardProps) {
           <div className="flex items-center text-sm">
             <Clock className="mr-2 h-4 w-4" />
             <span>
-              {format(startTime, "h:mm a")} - {format(endTime, "h:mm a")}
+              {format(startTime, "HH:mm")} - {format(endTime, "HH:mm")}
               <span className="text-muted-foreground ml-2">
                 ({formatDuration(booking.startTime, booking.endTime)})
               </span>
@@ -104,7 +99,7 @@ export function BookingCard({ booking, onCancelBooking }: BookingCardProps) {
           )}
         </div>
       </CardContent>
-      {!isPast && (isOwner || isAdmin) && (
+      {!isPast && (
         <CardFooter className="pt-2">
           <Button 
             variant="destructive" 

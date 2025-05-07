@@ -1,28 +1,9 @@
 
-import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
 import { BookingForm } from "@/components/booking/BookingForm";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
-import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "sonner";
 
 export default function Book() {
-  const { currentUser } = useAuth();
-  const navigate = useNavigate();
-
-  // Check if user is logged in
-  useEffect(() => {
-    if (!currentUser) {
-      toast.error("Please sign in to book the conference room");
-      navigate("/login", { replace: true });
-    }
-  }, [currentUser, navigate]);
-
-  if (!currentUser) {
-    return null; // Don't render anything while redirecting
-  }
-
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
