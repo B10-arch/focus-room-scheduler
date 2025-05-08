@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
+import { NepalClock } from "./NepalClock";
 
 export function Navbar() {
   const [open, setOpen] = useState(false);
@@ -23,28 +24,33 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
-      <div className="container flex h-16 items-center">
+      <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center">
           <Link to="/" className="flex items-center space-x-2">
             <Clock className="h-6 w-6 text-primary" />
             <span className="font-bold text-xl">Focus Room</span>
           </Link>
+
+          {/* Desktop navigation */}
+          <nav className="ml-10 hidden md:flex items-center space-x-6">
+            {navItems.map((item) => (
+              <Link
+                key={item.name}
+                to={item.href}
+                className="text-muted-foreground hover:text-foreground hover:underline underline-offset-4"
+              >
+                {item.name}
+              </Link>
+            ))}
+          </nav>
         </div>
 
-        {/* Desktop navigation */}
-        <nav className="ml-10 hidden md:flex items-center space-x-6">
-          {navItems.map((item) => (
-            <Link
-              key={item.name}
-              to={item.href}
-              className="text-muted-foreground hover:text-foreground hover:underline underline-offset-4"
-            >
-              {item.name}
-            </Link>
-          ))}
-        </nav>
-
-        <div className="flex flex-1 items-center justify-end space-x-4">
+        <div className="flex items-center space-x-4">
+          {/* Nepal Clock */}
+          <div className="hidden md:flex">
+            <NepalClock />
+          </div>
+          
           {/* Mobile menu */}
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
@@ -73,6 +79,12 @@ export function Navbar() {
                     <span className="sr-only">Close</span>
                   </Button>
                 </div>
+
+                {/* Show Nepal Clock in mobile menu */}
+                <div className="mb-4 px-2">
+                  <NepalClock />
+                </div>
+                <Separator className="mb-4" />
 
                 <div className="space-y-2">
                   {navItems.map((item) => (

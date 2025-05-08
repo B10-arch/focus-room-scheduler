@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { Clock } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { toZonedTime } from "date-fns-tz";
 
 type BookingTimerProps = {
   endTime: string;
@@ -16,13 +17,20 @@ export function BookingTimer({ endTime }: BookingTimerProps) {
   } | null>(null);
   
   const [isActive, setIsActive] = useState(true);
+  const timeZone = "Asia/Kathmandu"; // Nepal Standard Time
 
   useEffect(() => {
+    // Convert endTime to Nepal Standard Time
     const endDate = new Date(endTime);
     
     const calculateTimeLeft = () => {
-      const now = new Date();
-      const difference = endDate.getTime() - now.getTime();
+      // Get current time in Nepal Standard Time
+      const now = toZonedTime(new Date(), timeZone);
+      
+      // Convert end time to Nepal Standard Time for consistent comparison
+      const nepalEndDate = toZonedTime(endDate, timeZone);
+      
+      const difference = nepalEndDate.getTime() - now.getTime();
       
       if (difference <= 0) {
         setIsActive(false);
@@ -44,7 +52,7 @@ export function BookingTimer({ endTime }: BookingTimerProps) {
     
     // Cleanup on unmount
     return () => clearInterval(timerId);
-  }, [endTime]);
+  }, [endTime, timeZone]);
   
   if (!timeLeft) {
     return (
