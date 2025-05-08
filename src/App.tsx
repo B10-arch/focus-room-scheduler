@@ -13,6 +13,8 @@ import AuthProvider from "./contexts/AuthContext";
 import Book from "./pages/Book";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
 
 const queryClient = new QueryClient();
 
@@ -27,8 +29,8 @@ const App = () => (
             <Route path="/" element={<Book />} />
             <Route path="/book" element={<Book />} />
             <Route path="/dashboard" element={<Dashboard />} />
-            {/* Redirect /login to the booking page */}
-            <Route path="/login" element={<Navigate to="/" replace />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

@@ -6,12 +6,14 @@ type User = {
   id: string;
   email?: string;
   isAdmin: boolean;
+  name?: string;
 };
 
 type AuthContextType = {
   currentUser: User | null;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  register: (email: string, password: string, name: string) => Promise<void>;
   loading: boolean;
 };
 
@@ -20,6 +22,7 @@ const AuthContext = createContext<AuthContextType>({
   currentUser: null,
   login: async () => {},
   logout: async () => {},
+  register: async () => {},
   loading: true,
 });
 
@@ -61,6 +64,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return;
   };
 
+  // Mock register function
+  const register = async (email: string, password: string, name: string) => {
+    // In a real app, this would create a new user with Supabase
+    const mockUser = {
+      id: 'guest',
+      email: email,
+      isAdmin: email.includes('admin'),
+      name: name,
+    };
+    
+    setCurrentUser(mockUser);
+    localStorage.setItem('user', JSON.stringify(mockUser));
+    return;
+  };
+
   // Mock logout function
   const logout = async () => {
     setCurrentUser(null);
@@ -72,6 +90,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     currentUser,
     login,
     logout,
+    register,
     loading,
   };
 
