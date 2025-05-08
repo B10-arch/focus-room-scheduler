@@ -1,4 +1,3 @@
-
 import { format } from "date-fns";
 import { CalendarIcon, Clock } from "lucide-react";
 
@@ -15,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Booking } from "@/types/booking";
 import { cn } from "@/lib/utils";
+import { BookingTimer } from "./BookingTimer";
 
 interface BookingCardProps {
   booking: Booking;
@@ -50,6 +50,7 @@ export function BookingCard({ booking, onCancelBooking }: BookingCardProps) {
   const startTime = new Date(booking.startTime);
   const endTime = new Date(booking.endTime);
   const isPast = endTime < new Date();
+  const isActive = startTime <= new Date() && endTime > new Date();
   
   return (
     <Card className={cn(
@@ -66,6 +67,8 @@ export function BookingCard({ booking, onCancelBooking }: BookingCardProps) {
           </div>
           {isPast ? (
             <Badge variant="outline" className="bg-muted">Past</Badge>
+          ) : isActive ? (
+            <Badge className="bg-green-500 text-white">In Progress</Badge>
           ) : (
             <Badge className="bg-primary">Upcoming</Badge>
           )}
@@ -86,6 +89,14 @@ export function BookingCard({ booking, onCancelBooking }: BookingCardProps) {
               </span>
             </span>
           </div>
+          
+          {/* Add timer for current or upcoming bookings */}
+          {!isPast && (
+            <div className="mt-2">
+              <BookingTimer endTime={booking.endTime} />
+            </div>
+          )}
+          
           {booking.description && (
             <div className="mt-2 text-sm text-muted-foreground">
               {booking.description}

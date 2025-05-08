@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -105,8 +104,12 @@ export function BookingForm() {
         durationMinutes: data.duration
       });
       
-      toast.success("Booking confirmed!");
-      navigate("/dashboard");
+      toast.success("Booking confirmed! Redirecting to dashboard...");
+      
+      // Automatically redirect to dashboard after successful booking
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 1500);
     } catch (error) {
       console.error(error);
       toast.error("Failed to create booking");

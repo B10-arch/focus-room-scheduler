@@ -1,5 +1,5 @@
 
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { Toaster } from "@/components/ui/toaster";
@@ -13,8 +13,6 @@ import AuthProvider from "./contexts/AuthContext";
 import Book from "./pages/Book";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
 
 const queryClient = new QueryClient();
 
@@ -29,8 +27,6 @@ const App = () => (
             <Route path="/" element={<Book />} />
             <Route path="/book" element={<Book />} />
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
