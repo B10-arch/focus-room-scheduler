@@ -32,31 +32,32 @@ type AuthProviderProps = {
   children: ReactNode;
 };
 
-// Simple mock auth provider for now
+// Simple mock auth provider for our app
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Load user from localStorage on mount
+  // Initialize with a default guest user to avoid redirection issues
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      try {
-        setCurrentUser(JSON.parse(storedUser));
-      } catch (error) {
-        console.error('Error parsing stored user:', error);
-      }
-    }
+    // Create a default guest user so we don't get redirected
+    const defaultUser = {
+      id: 'guest',
+      isAdmin: false,
+      name: 'Guest User'
+    };
+    
+    setCurrentUser(defaultUser);
+    localStorage.setItem('user', JSON.stringify(defaultUser));
     setLoading(false);
   }, []);
 
   // Mock login function
   const login = async (email: string, password: string) => {
-    // In a real app, this would authenticate with Supabase
     const mockUser = {
       id: 'guest',
       email: email,
       isAdmin: email.includes('admin'),
+      name: email.split('@')[0]
     };
     
     setCurrentUser(mockUser);
@@ -66,7 +67,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Mock register function
   const register = async (email: string, password: string, name: string) => {
-    // In a real app, this would create a new user with Supabase
     const mockUser = {
       id: 'guest',
       email: email,
@@ -81,8 +81,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Mock logout function
   const logout = async () => {
-    setCurrentUser(null);
-    localStorage.removeItem('user');
+    // Instead of removing the user completely, set back to default guest
+    const defaultUser = {
+      id: 'guest',
+      isAdmin: false,
+      name: 'Guest User'
+    };
+    
+    setCurrentUser(defaultUser);
+    localStorage.setItem('user', JSON.stringify(defaultUser));
     return;
   };
 

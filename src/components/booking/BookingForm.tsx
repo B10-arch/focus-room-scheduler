@@ -93,7 +93,7 @@ export function BookingForm() {
     
     try {
       // Create booking with the user's name instead of authentication
-      const booking = await createBooking({
+      await createBooking({
         userId: "guest", // Use a placeholder userId for non-authenticated users
         title: data.title,
         description: data.description || "",
@@ -107,9 +107,7 @@ export function BookingForm() {
       toast.success("Booking confirmed! Redirecting to dashboard...");
       
       // Automatically redirect to dashboard after successful booking
-      setTimeout(() => {
-        navigate("/dashboard");
-      }, 1500);
+      navigate("/dashboard");
     } catch (error) {
       console.error(error);
       toast.error("Failed to create booking");

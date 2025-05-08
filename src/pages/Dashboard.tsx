@@ -1,6 +1,5 @@
 
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { CalendarIcon, PlusCircle } from "lucide-react";
 
 import { Navbar } from "@/components/layout/Navbar";
@@ -8,8 +7,7 @@ import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Booking } from "@/types/booking";
-import { useAuth } from "@/contexts/AuthContext";
-import { getBookings, getUserBookings, cancelBooking } from "@/lib/api";
+import { getBookings, cancelBooking } from "@/lib/api";
 import { BookingList } from "@/components/booking/BookingList";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -71,32 +69,16 @@ function BookingStats({ bookings }: { bookings: Booking[] }) {
 }
 
 export default function Dashboard() {
-  const { currentUser } = useAuth();
-  const navigate = useNavigate();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Check if user is logged in
+  // Load all bookings without checking for login
   useEffect(() => {
-    if (!currentUser) {
-      toast.error("Please sign in to view your dashboard");
-      navigate("/login", { replace: true });
-      return;
-    }
-
     const fetchBookings = async () => {
       setIsLoading(true);
       try {
-        let data: Booking[];
-        
-        if (currentUser.isAdmin) {
-          // Admins can see all bookings
-          data = await getBookings();
-        } else {
-          // Regular users only see their own bookings
-          data = await getUserBookings(currentUser.id);
-        }
-        
+        // Get all bookings
+        const data = await getBookings();
         setBookings(data);
       } catch (error) {
         console.error("Error fetching bookings:", error);
@@ -107,12 +89,13 @@ export default function Dashboard() {
     };
 
     fetchBookings();
-  }, [currentUser, navigate]);
+  }, []);
 
   const handleCancelBooking = async (id: string) => {
     try {
       await cancelBooking(id);
       setBookings(prev => prev.filter(booking => booking.id !== id));
+      toast.success("Booking cancelled successfully");
     } catch (error) {
       console.error("Error cancelling booking:", error);
       toast.error("Failed to cancel booking");
@@ -127,19 +110,13 @@ export default function Dashboard() {
     booking => new Date(booking.endTime) <= new Date()
   );
 
-  if (!currentUser) {
-    return null; // Don't render anything while redirecting
-  }
-
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
       <main className="flex-1 container max-w-screen-xl mx-auto py-12">
         <div className="flex flex-col">
           <div className="flex items-center justify-between mb-8">
-            <h1 className="text-3xl font-bold">
-              {currentUser.isAdmin ? "All Bookings" : "My Bookings"}
-            </h1>
+            <h1 className="text-3xl font-bold">Bookings</h1>
             <Button asChild>
               <a href="/book">
                 <PlusCircle className="mr-2 h-4 w-4" />
