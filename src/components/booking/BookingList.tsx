@@ -1,3 +1,4 @@
+
 import { format } from "date-fns";
 import { CalendarIcon, Clock } from "lucide-react";
 
@@ -90,10 +91,10 @@ export function BookingCard({ booking, onCancelBooking }: BookingCardProps) {
             </span>
           </div>
           
-          {/* Add timer for current or upcoming bookings */}
+          {/* Updated timer to pass both start and end times */}
           {!isPast && (
             <div className="mt-2">
-              <BookingTimer endTime={booking.endTime} />
+              <BookingTimer startTime={booking.startTime} endTime={booking.endTime} />
             </div>
           )}
           
