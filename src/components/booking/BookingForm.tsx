@@ -81,17 +81,17 @@ export function BookingForm() {
   const onSubmit = async (data: BookingValues) => {
     setIsLoading(true);
 
-    // Parse time components
-    const [hours, minutes] = data.startTime.split(":").map(Number);
-    
-    // Create date object with selected date and time
-    const bookingDate = new Date(data.date);
-    bookingDate.setHours(hours, minutes, 0, 0);
-    
-    // Calculate end time
-    const endDate = addMinutes(bookingDate, data.duration);
-    
     try {
+      // Parse time components
+      const [hours, minutes] = data.startTime.split(":").map(Number);
+      
+      // Create date object with selected date and time
+      const bookingDate = new Date(data.date);
+      bookingDate.setHours(hours, minutes, 0, 0);
+      
+      // Calculate end time
+      const endDate = addMinutes(bookingDate, data.duration);
+      
       // Create booking with the user's name instead of authentication
       await createBooking({
         userId: "guest", // Use a placeholder userId for non-authenticated users
@@ -106,11 +106,13 @@ export function BookingForm() {
       
       toast.success("Booking confirmed! Redirecting to dashboard...");
       
-      // Automatically redirect to dashboard after successful booking
-      navigate("/dashboard");
+      // Ensure we redirect to dashboard after successful booking
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 1000);
     } catch (error) {
-      console.error(error);
-      toast.error("Failed to create booking");
+      console.error("Booking error:", error);
+      // Error is already handled in the createBooking function with toast
     } finally {
       setIsLoading(false);
     }

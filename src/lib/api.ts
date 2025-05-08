@@ -51,8 +51,9 @@ const calculateDuration = (start: string, end: string): number => {
 // Create a new booking
 export const createBooking = async (params: CreateBookingParams): Promise<Booking> => {
   try {
-    // Check for conflicts first
+    // Check for conflicts first - fixed conflict check logic
     const conflictsCheck = await checkBookingConflicts(params.startTime, params.endTime);
+    
     if (conflictsCheck.conflicts) {
       throw new Error("There is a scheduling conflict with an existing booking");
     }
@@ -103,26 +104,44 @@ export const createBooking = async (params: CreateBookingParams): Promise<Bookin
   }
 };
 
-// Check for booking conflicts
+// Fixed booking conflict check logic
 const checkBookingConflicts = async (
   startTime: string,
   endTime: string
 ): Promise<{ conflicts: boolean }> => {
   try {
+    // Get all existing bookings
     const { data, error } = await supabase
       .from('bookings')
-      .select('start_time, end_time')
-      .or(`start_time.lte.${endTime},end_time.gte.${startTime}`);
+      .select('start_time, end_time');
 
     if (error) {
       console.error('Error checking conflicts:', error);
       throw error;
     }
 
-    return { conflicts: data.length > 0 };
+    // Parse the new booking times
+    const newStart = new Date(startTime).getTime();
+    const newEnd = new Date(endTime).getTime();
+    
+    // Check for any overlapping bookings
+    const conflicts = data.some(booking => {
+      const existingStart = new Date(booking.start_time).getTime();
+      const existingEnd = new Date(booking.end_time).getTime();
+      
+      // Check if bookings overlap
+      return (
+        (newStart >= existingStart && newStart < existingEnd) || // New booking starts during existing booking
+        (newEnd > existingStart && newEnd <= existingEnd) || // New booking ends during existing booking
+        (newStart <= existingStart && newEnd >= existingEnd) // New booking completely encompasses existing booking
+      );
+    });
+
+    return { conflicts };
   } catch (error) {
     console.error('Error in checkBookingConflicts:', error);
-    return { conflicts: false }; // Default to no conflicts on error
+    // Default to no conflicts on error to prevent false positives
+    return { conflicts: false };
   }
 };
 
