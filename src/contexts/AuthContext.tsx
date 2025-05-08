@@ -1,108 +1,81 @@
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { toast } from "sonner";
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
-export interface User {
+// Simple user type that doesn't depend on the Supabase types
+type User = {
   id: string;
-  email: string;
-  name: string;
-  isAdmin?: boolean;
-}
+  email?: string;
+  isAdmin: boolean;
+};
 
-interface AuthContextType {
+type AuthContextType = {
   currentUser: User | null;
-  isLoading: boolean;
-  login: (email: string, password: string) => Promise<User>;
-  register: (email: string, password: string, name: string) => Promise<User>;
-  logout: () => void;
-}
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
+  loading: boolean;
+};
 
+// Default context
 const AuthContext = createContext<AuthContextType>({
   currentUser: null,
-  isLoading: true,
-  login: async () => { throw new Error('AuthContext not initialized'); },
-  register: async () => { throw new Error('AuthContext not initialized'); },
-  logout: () => {},
+  login: async () => {},
+  logout: async () => {},
+  loading: true,
 });
 
 export const useAuth = () => useContext(AuthContext);
 
-// Mock users database - in a real app, this would be in Supabase
-const MOCK_USERS: User[] = [
-  { id: '1', email: 'admin@example.com', name: 'Admin User', isAdmin: true },
-  { id: '2', email: 'user@example.com', name: 'Regular User' }
-];
+type AuthProviderProps = {
+  children: ReactNode;
+};
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+// Simple mock auth provider for now
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
 
-  // Check for existing session on load
+  // Load user from localStorage on mount
   useEffect(() => {
-    const storedUser = localStorage.getItem('focusRoomUser');
+    const storedUser = localStorage.getItem('user');
     if (storedUser) {
       try {
         setCurrentUser(JSON.parse(storedUser));
       } catch (error) {
-        console.error('Failed to parse stored user data', error);
-        localStorage.removeItem('focusRoomUser');
+        console.error('Error parsing stored user:', error);
       }
     }
-    setIsLoading(false);
+    setLoading(false);
   }, []);
 
-  const login = async (email: string, password: string): Promise<User> => {
-    // Simulate API call with mock data
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        const user = MOCK_USERS.find(u => u.email === email);
-        if (user) {
-          // In a real app, we'd verify the password
-          setCurrentUser(user);
-          localStorage.setItem('focusRoomUser', JSON.stringify(user));
-          toast.success("Logged in successfully!");
-          resolve(user);
-        } else {
-          toast.error("Invalid credentials");
-          reject(new Error('Invalid credentials'));
-        }
-      }, 500);
-    });
+  // Mock login function
+  const login = async (email: string, password: string) => {
+    // In a real app, this would authenticate with Supabase
+    const mockUser = {
+      id: 'guest',
+      email: email,
+      isAdmin: email.includes('admin'),
+    };
+    
+    setCurrentUser(mockUser);
+    localStorage.setItem('user', JSON.stringify(mockUser));
+    return;
   };
 
-  const register = async (email: string, password: string, name: string): Promise<User> => {
-    // Simulate API call with mock data
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        const existing = MOCK_USERS.find(u => u.email === email);
-        if (existing) {
-          toast.error("User already exists");
-          reject(new Error('User already exists'));
-        } else {
-          const newUser: User = {
-            id: `${MOCK_USERS.length + 1}`,
-            email,
-            name
-          };
-          // In a real app, we'd store this in the database
-          setCurrentUser(newUser);
-          localStorage.setItem('focusRoomUser', JSON.stringify(newUser));
-          toast.success("Account created successfully!");
-          resolve(newUser);
-        }
-      }, 500);
-    });
-  };
-
-  const logout = () => {
+  // Mock logout function
+  const logout = async () => {
     setCurrentUser(null);
-    localStorage.removeItem('focusRoomUser');
-    toast.info("Logged out successfully");
+    localStorage.removeItem('user');
+    return;
   };
 
-  return (
-    <AuthContext.Provider value={{ currentUser, isLoading, login, register, logout }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  const value = {
+    currentUser,
+    login,
+    logout,
+    loading,
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
+
+export default AuthProvider;
