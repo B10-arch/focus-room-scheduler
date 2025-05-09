@@ -62,7 +62,7 @@ const sendEmailToAttendees = async (
   try {
     if (!attendees || attendees.length === 0) {
       console.log("No attendees to send emails to");
-      return;
+      return { success: true, sentCount: 0 };
     }
 
     console.log("Sending emails to attendees:", attendees);
@@ -80,7 +80,11 @@ const sendEmailToAttendees = async (
     }
     
     console.log("Email function response:", data);
-    return true;
+    return { 
+      success: true,
+      sentCount: data?.successfulSends || 0,
+      total: attendees.length
+    };
   } catch (error) {
     console.error('Error in sendEmailToAttendees:', error);
     throw error;
@@ -132,7 +136,7 @@ export const createBooking = async (params: CreateBookingParams): Promise<Bookin
     // Send email notifications to attendees
     if (params.attendees && params.attendees.length > 0) {
       try {
-        await sendEmailToAttendees(
+        const emailResult = await sendEmailToAttendees(
           params.attendees,
           {
             title: params.title,
@@ -142,10 +146,15 @@ export const createBooking = async (params: CreateBookingParams): Promise<Bookin
             bookedBy: params.createdBy
           }
         );
-        toast.success(`Notification emails sent to attendees`);
+        
+        if (emailResult.sentCount > 0) {
+          toast.success(`Sent notification emails to ${emailResult.sentCount} of ${emailResult.total} attendees`);
+        } else {
+          toast.warning("Note: No notification emails were sent successfully");
+        }
       } catch (emailError) {
         console.error("Failed to send emails:", emailError);
-        toast.error("Booking created, but failed to send notification emails");
+        toast.warning("Booking created, but failed to send notification emails");
       }
     }
 

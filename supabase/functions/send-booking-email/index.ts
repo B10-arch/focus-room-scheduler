@@ -61,43 +61,77 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log(`Sending email to: ${to.join(", ")}`);
     
-    const emailResponse = await resend.emails.send({
-      from: "Focus Room Scheduler <onboarding@resend.dev>",
-      to: to,
-      subject: subject,
-      html: `
-        <div style="font-family: 'Arial', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
-          <h1 style="color: #333; border-bottom: 1px solid #eee; padding-bottom: 15px;">${bookingDetails.title}</h1>
-          
-          <div style="margin: 20px 0;">
-            <p style="margin: 5px 0;"><strong>Date:</strong> ${formattedStartDate}</p>
-            <p style="margin: 5px 0;"><strong>Time:</strong> ${formattedStartTime} - ${formattedEndTime}</p>
-            <p style="margin: 5px 0;"><strong>Booked by:</strong> ${bookingDetails.bookedBy}</p>
-          </div>
-          
-          ${bookingDetails.description ? 
-            `<div style="margin: 20px 0; padding: 15px; background-color: #f9f9f9; border-radius: 5px;">
-              <h3 style="margin-top: 0;">Description</h3>
-              <p>${bookingDetails.description}</p>
-            </div>` : ''
-          }
-          
-          <div style="margin-top: 30px; padding-top: 15px; border-top: 1px solid #eee; color: #666; font-size: 12px;">
-            <p>This is an automated message from the Focus Conference Room Scheduler.</p>
-          </div>
+    // Build HTML email template
+    const emailHtml = `
+      <div style="font-family: 'Arial', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
+        <h1 style="color: #333; border-bottom: 1px solid #eee; padding-bottom: 15px;">${bookingDetails.title}</h1>
+        
+        <div style="margin: 20px 0;">
+          <p style="margin: 5px 0;"><strong>Date:</strong> ${formattedStartDate}</p>
+          <p style="margin: 5px 0;"><strong>Time:</strong> ${formattedStartTime} - ${formattedEndTime}</p>
+          <p style="margin: 5px 0;"><strong>Booked by:</strong> ${bookingDetails.bookedBy}</p>
         </div>
-      `,
+        
+        ${bookingDetails.description ? 
+          `<div style="margin: 20px 0; padding: 15px; background-color: #f9f9f9; border-radius: 5px;">
+            <h3 style="margin-top: 0;">Description</h3>
+            <p>${bookingDetails.description}</p>
+          </div>` : ''
+        }
+        
+        <div style="margin-top: 30px; padding-top: 15px; border-top: 1px solid #eee; color: #666; font-size: 12px;">
+          <p>This is an automated message from the Focus Conference Room Scheduler.</p>
+        </div>
+      </div>
+    `;
+    
+    // Send individual emails to each recipient
+    // This works around Resend's limitation by sending separate emails
+    const emailPromises = to.map(async (recipient) => {
+      try {
+        const emailResponse = await resend.emails.send({
+          from: "Focus Room Scheduler <onboarding@resend.dev>",
+          to: recipient,
+          subject: subject,
+          html: emailHtml,
+        });
+        
+        return { 
+          email: recipient, 
+          status: emailResponse.error ? "failed" : "sent",
+          error: emailResponse.error
+        };
+      } catch (err) {
+        console.error(`Failed to send to ${recipient}:`, err);
+        return { 
+          email: recipient, 
+          status: "failed",
+          error: err 
+        };
+      }
     });
-
-    console.log("Email sent successfully:", emailResponse);
-
-    return new Response(JSON.stringify(emailResponse), {
-      status: 200,
-      headers: {
-        "Content-Type": "application/json",
-        ...corsHeaders,
-      },
-    });
+    
+    // Wait for all email send attempts to complete
+    const results = await Promise.all(emailPromises);
+    
+    console.log("Email results:", results);
+    
+    // Count successful sends
+    const successfulSends = results.filter(r => r.status === "sent").length;
+    
+    return new Response(
+      JSON.stringify({ 
+        message: `Successfully sent ${successfulSends} of ${to.length} emails`,
+        results: results
+      }),
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          ...corsHeaders,
+        },
+      }
+    );
   } catch (error: any) {
     console.error("Error in send-booking-email function:", error);
     return new Response(
