@@ -61,11 +61,12 @@ const sendEmailToAttendees = async (
 ) => {
   try {
     if (!attendees || attendees.length === 0) {
+      console.log("No attendees to send emails to");
       return;
     }
 
     console.log("Sending emails to attendees:", attendees);
-    const { error } = await supabase.functions.invoke('send-booking-email', {
+    const { error, data } = await supabase.functions.invoke('send-booking-email', {
       body: {
         to: attendees,
         subject: `Conference Room Booking: ${bookingDetails.title}`,
@@ -78,6 +79,7 @@ const sendEmailToAttendees = async (
       throw error;
     }
     
+    console.log("Email function response:", data);
     return true;
   } catch (error) {
     console.error('Error in sendEmailToAttendees:', error);
