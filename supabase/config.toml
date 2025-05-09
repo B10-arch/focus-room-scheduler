@@ -1,1 +1,10 @@
+
 project_id = "xaajbbgdzikvyuqinysi"
+
+[api]
+enabled = true
+  [api.endpoints]
+  edge_functions = true
+
+[functions.send-booking-email]
+verify_jwt = false

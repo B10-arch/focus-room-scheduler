@@ -48,6 +48,43 @@ const calculateDuration = (start: string, end: string): number => {
   return Math.round((endDate.getTime() - startDate.getTime()) / (1000 * 60));
 };
 
+// Send emails to booking attendees
+const sendEmailToAttendees = async (
+  attendees: string[],
+  bookingDetails: {
+    title: string;
+    description: string;
+    startTime: string;
+    endTime: string;
+    bookedBy: string;
+  }
+) => {
+  try {
+    if (!attendees || attendees.length === 0) {
+      return;
+    }
+
+    console.log("Sending emails to attendees:", attendees);
+    const { error } = await supabase.functions.invoke('send-booking-email', {
+      body: {
+        to: attendees,
+        subject: `Conference Room Booking: ${bookingDetails.title}`,
+        bookingDetails
+      }
+    });
+
+    if (error) {
+      console.error('Error sending emails:', error);
+      throw error;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error in sendEmailToAttendees:', error);
+    throw error;
+  }
+};
+
 // Create a new booking
 export const createBooking = async (params: CreateBookingParams): Promise<Booking> => {
   try {
@@ -90,10 +127,24 @@ export const createBooking = async (params: CreateBookingParams): Promise<Bookin
       durationMinutes: params.durationMinutes || calculateDuration(data.start_time, data.end_time)
     };
 
-    // Simulate sending email notifications
+    // Send email notifications to attendees
     if (params.attendees && params.attendees.length > 0) {
-      console.log(`Email notifications would be sent to: ${params.attendees.join(", ")}`);
-      toast.success(`Notification emails sent to attendees`);
+      try {
+        await sendEmailToAttendees(
+          params.attendees,
+          {
+            title: params.title,
+            description: params.description || '',
+            startTime: params.startTime,
+            endTime: params.endTime,
+            bookedBy: params.createdBy
+          }
+        );
+        toast.success(`Notification emails sent to attendees`);
+      } catch (emailError) {
+        console.error("Failed to send emails:", emailError);
+        toast.error("Booking created, but failed to send notification emails");
+      }
     }
 
     return newBooking;
