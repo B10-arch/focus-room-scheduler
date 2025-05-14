@@ -175,7 +175,8 @@ export default function Dashboard() {
               ) : (
                 <BookingList 
                   bookings={pastBookings} 
-                  onCancelBooking={handleCancelBooking} 
+                  onCancelBooking={handleCancelBooking}
+                  listType="userTable"
                 />
               )}
             </TabsContent>

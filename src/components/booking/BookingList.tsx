@@ -1,6 +1,5 @@
-
 import { format } from "date-fns";
-import { CalendarIcon, Clock } from "lucide-react";
+import { CalendarIcon, Clock, ChevronRight, ChevronDown } from "lucide-react";
 
 import {
   Card,
@@ -16,6 +15,15 @@ import { toast } from "sonner";
 import { Booking } from "@/types/booking";
 import { cn } from "@/lib/utils";
 import { BookingTimer } from "./BookingTimer";
+import { useState } from "react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 interface BookingCardProps {
   booking: Booking;
@@ -91,7 +99,6 @@ export function BookingCard({ booking, onCancelBooking }: BookingCardProps) {
             </span>
           </div>
           
-          {/* Updated timer to pass both start and end times */}
           {!isPast && (
             <div className="mt-2">
               <BookingTimer startTime={booking.startTime} endTime={booking.endTime} />
@@ -127,9 +134,130 @@ export function BookingCard({ booking, onCancelBooking }: BookingCardProps) {
   );
 }
 
-export function BookingList({ bookings, onCancelBooking }: { 
+interface UserBookingsRowProps {
+  userName: string;
+  bookings: Booking[];
+}
+
+function UserBookingsRow({ userName, bookings }: UserBookingsRowProps) {
+  const [expanded, setExpanded] = useState(false);
+  const totalBookings = bookings.length;
+  
+  // Calculate total hours booked by this user
+  const totalMinutes = bookings.reduce((total, booking) => {
+    const startDate = new Date(booking.startTime);
+    const endDate = new Date(booking.endTime);
+    const durationMs = endDate.getTime() - startDate.getTime();
+    const durationMinutes = Math.round(durationMs / (1000 * 60));
+    return total + durationMinutes;
+  }, 0);
+  
+  const totalHours = Math.floor(totalMinutes / 60);
+  const remainingMinutes = totalMinutes % 60;
+  
+  // Get the most recent booking date
+  const mostRecentBooking = new Date(Math.max(
+    ...bookings.map(booking => new Date(booking.endTime).getTime())
+  ));
+  
+  return (
+    <>
+      <TableRow 
+        className="cursor-pointer hover:bg-muted/80" 
+        onClick={() => setExpanded(!expanded)}
+      >
+        <TableCell className="font-medium flex items-center">
+          {expanded ? <ChevronDown className="h-4 w-4 mr-2" /> : <ChevronRight className="h-4 w-4 mr-2" />}
+          {userName}
+        </TableCell>
+        <TableCell>{totalBookings}</TableCell>
+        <TableCell>
+          {totalHours} hr {remainingMinutes > 0 ? `${remainingMinutes} min` : ""}
+        </TableCell>
+        <TableCell>{format(mostRecentBooking, "MMM d, yyyy")}</TableCell>
+      </TableRow>
+      
+      {expanded && (
+        <TableRow>
+          <TableCell colSpan={4} className="p-0">
+            <div className="p-4 bg-muted/20 border-t border-b">
+              <h4 className="font-medium text-sm mb-3">Booking History</h4>
+              <div className="grid gap-3">
+                {bookings.map((booking) => (
+                  <div key={booking.id} className="text-sm p-3 bg-background rounded-md border">
+                    <div className="font-medium">{booking.title}</div>
+                    <div className="text-xs text-muted-foreground mt-1 flex items-center">
+                      <CalendarIcon className="h-3 w-3 mr-1" />
+                      {format(new Date(booking.startTime), "MMM d, yyyy")} | 
+                      <Clock className="h-3 w-3 mx-1" />
+                      {format(new Date(booking.startTime), "HH:mm")} - {format(new Date(booking.endTime), "HH:mm")}
+                    </div>
+                    {booking.description && (
+                      <div className="text-xs mt-2 text-muted-foreground">{booking.description}</div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </TableCell>
+        </TableRow>
+      )}
+    </>
+  );
+}
+
+function PastBookingsByUser({ bookings }: { bookings: Booking[] }) {
+  // Group bookings by user
+  const bookingsByUser: Record<string, Booking[]> = {};
+  
+  bookings.forEach(booking => {
+    if (!bookingsByUser[booking.createdBy]) {
+      bookingsByUser[booking.createdBy] = [];
+    }
+    bookingsByUser[booking.createdBy].push(booking);
+  });
+  
+  const users = Object.keys(bookingsByUser);
+  
+  if (users.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-muted-foreground">No past bookings found</p>
+      </div>
+    );
+  }
+  
+  return (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Name</TableHead>
+          <TableHead>Total Bookings</TableHead>
+          <TableHead>Total Time</TableHead>
+          <TableHead>Last Booking</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {users.map(user => (
+          <UserBookingsRow 
+            key={user} 
+            userName={user} 
+            bookings={bookingsByUser[user]} 
+          />
+        ))}
+      </TableBody>
+    </Table>
+  );
+}
+
+export function BookingList({ 
+  bookings, 
+  onCancelBooking,
+  listType = "cards"
+}: { 
   bookings: Booking[],
-  onCancelBooking: (id: string) => void
+  onCancelBooking: (id: string) => void,
+  listType?: "cards" | "userTable"
 }) {
   if (bookings.length === 0) {
     return (
@@ -137,6 +265,10 @@ export function BookingList({ bookings, onCancelBooking }: {
         <p className="text-muted-foreground">No bookings found</p>
       </div>
     );
+  }
+
+  if (listType === "userTable") {
+    return <PastBookingsByUser bookings={bookings} />;
   }
 
   return (
