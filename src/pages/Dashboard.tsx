@@ -1,6 +1,6 @@
-
 import { useEffect, useState } from "react";
 import { CalendarIcon, PlusCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
@@ -71,6 +71,7 @@ function BookingStats({ bookings }: { bookings: Booking[] }) {
 export default function Dashboard() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
 
   // Load all bookings without checking for login
   useEffect(() => {
@@ -102,6 +103,10 @@ export default function Dashboard() {
     }
   };
 
+  const handleNewBooking = () => {
+    navigate('/book');
+  };
+
   const upcomingBookings = bookings.filter(
     booking => new Date(booking.endTime) > new Date()
   );
@@ -117,11 +122,9 @@ export default function Dashboard() {
         <div className="flex flex-col">
           <div className="flex items-center justify-between mb-8">
             <h1 className="text-3xl font-bold">Bookings</h1>
-            <Button asChild>
-              <a href="/book">
-                <PlusCircle className="mr-2 h-4 w-4" />
-                New Booking
-              </a>
+            <Button onClick={handleNewBooking}>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              New Booking
             </Button>
           </div>
           
@@ -152,8 +155,8 @@ export default function Dashboard() {
               ) : upcomingBookings.length === 0 ? (
                 <div className="text-center py-12">
                   <p className="text-muted-foreground">No upcoming bookings</p>
-                  <Button asChild className="mt-4">
-                    <a href="/book">Book Conference Room</a>
+                  <Button onClick={handleNewBooking} className="mt-4">
+                    Book Conference Room
                   </Button>
                 </div>
               ) : (
